@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+
+from django.conf.global_settings import CACHES
 from dotenv import load_dotenv
 from .env import env_str, env_int
 
@@ -111,6 +113,28 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+
+
+REDIS_URL = env_str('REDIS_URL', 'адрес Redis для кэша и брокера задач')
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': REDIS_URL,
+        }
+    }
+
+CELERY_BROKER_URL = REDIS_URL
+CELERY_RESULT_BACKEND = REDIS_URL
+
+# Подтверждать задачу после выполнения, а не при получении.
+CELERY_TASK_ACKS_LATE = True
+
+# При аварийной смерти процесса worker.
+CELERY_TASK_REJECT_ON_WORKER_LOST = True
+CELERY_TIMEZONE = 'UTC'
+# Попытка подключения к брокеру несколько раз, если брокер не доступен.
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
