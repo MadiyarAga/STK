@@ -10,7 +10,7 @@ def _raw(name: str) -> str | object:
     Возвращает непустую строку либо _UNSET, если переменная не задана
     или состоит только из пробелов."""
 
-    value = os.environ.get(name, "").strip()
+    value = os.environ.get(name, '').strip()
 
     return value if value else _UNSET
 
@@ -19,10 +19,7 @@ def _missing(name: str, purpose: str, default):
     """Обрабатывает отсутствие значения: либо падаем, либо отдаём default как есть."""
 
     if default is _UNSET:
-        raise ImproperlyConfigured(
-            f"Переменная окружения '{name}' не настроена. "
-            f"Назначение: {purpose}."
-        )
+        raise ImproperlyConfigured(f"Переменная окружения '{name}' не настроена. Назначение: {purpose}.")
 
     return default
 
@@ -49,16 +46,16 @@ def env_bool(name: str, purpose: str, default=_UNSET) -> bool:
 
     normalized = value.lower()
 
-    if normalized in ("1", "true", "yes", "on"):
+    if normalized in ('1', 'true', 'yes', 'on'):
         return True
 
-    if normalized in ("0", "false", "no", "off"):
+    if normalized in ('0', 'false', 'no', 'off'):
         return False
 
     raise ImproperlyConfigured(
         f"Некорректное логическое значение для '{name}': '{value}'. "
-        f"Допустимы: 1/0, true/false, yes/no, on/off. "
-        f"Назначение: {purpose}."
+        f'Допустимы: 1/0, true/false, yes/no, on/off. '
+        f'Назначение: {purpose}.'
     )
 
 
@@ -74,8 +71,7 @@ def env_int(name: str, purpose: str, default=_UNSET) -> int:
         return int(value)
     except ValueError:
         raise ImproperlyConfigured(
-            f"Значение переменной '{name}' должно быть целым числом, "
-            f"получено: '{value}'. Назначение: {purpose}."
+            f"Значение переменной '{name}' должно быть целым числом, получено: '{value}'. Назначение: {purpose}."
         ) from None
 
 
@@ -91,12 +87,12 @@ def env_list(name: str, purpose: str, default=_UNSET) -> list[str]:
     if value is _UNSET:
         return _missing(name, purpose, default)
 
-    items = [item.strip() for item in value.split(",") if item.strip()]
+    items = [item.strip() for item in value.split(',') if item.strip()]
 
     if not items:
         raise ImproperlyConfigured(
             f"Переменная '{name}' задана, но не содержит ни одного элемента: '{value}'. "
-            f"Ожидается список через запятую. Назначение: {purpose}."
+            f'Ожидается список через запятую. Назначение: {purpose}.'
         )
 
     return items

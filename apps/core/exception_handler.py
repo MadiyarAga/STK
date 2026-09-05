@@ -29,7 +29,10 @@ def api_exception_handler(exc, context):
         return _respond(exc, _headers_for(exc))
 
     if isinstance(exc, drf_exceptions.ValidationError):
-        return _respond(errors.ValidationError(details=_flatten(exc.detail)), _headers_for(exc),)
+        return _respond(
+            errors.ValidationError(details=_flatten(exc.detail)),
+            _headers_for(exc),
+        )
 
     for exception_types, error_class in _DRF_TO_APP_ERROR:
         if isinstance(exc, exception_types):
@@ -37,18 +40,25 @@ def api_exception_handler(exc, context):
 
     if isinstance(exc, drf_exceptions.APIException):
         return _respond(
-            errors.AppError(_plain_message(exc.detail),
-                            code='REQUEST_ERROR', http_status=exc.status_code), _headers_for(exc),)
+            errors.AppError(_plain_message(exc.detail), code='REQUEST_ERROR', http_status=exc.status_code),
+            _headers_for(exc),
+        )
 
-    logger.exception('Необработанное исключение в API', extra={'view': _view_name(context)},)
+    logger.exception(
+        'Необработанное исключение в API',
+        extra={'view': _view_name(context)},
+    )
     return _respond(errors.InternalError(), {})
+
 
 def _respond(error: errors.AppError, headers: dict) -> Response:
     set_rollback()
     return Response(
         build_error_body(error.code, error.message, error.details),
-        status = error.http_status, headers=headers or None,
+        status=error.http_status,
+        headers=headers or None,
     )
+
 
 def _headers_for(exc) -> dict:
     headers = {}
@@ -62,6 +72,7 @@ def _headers_for(exc) -> dict:
         headers['Retry-After'] = str(math.ceil(wait))
 
     return headers
+
 
 def _flatten(detail, path: str = '') -> list[dict]:
     if isinstance(detail, dict):
@@ -81,12 +92,14 @@ def _flatten(detail, path: str = '') -> list[dict]:
 
     return [{'field': path or None, 'message': str(detail)}]
 
+
 def _plain_message(detail) -> str:
     if isinstance(detail, dict):
         return str(next(iter(detail.values()), ''))
     if isinstance(detail, list):
         return str(detail[0]) if detail else ''
     return str(detail)
+
 
 def _view_name(context) -> str | None:
     view = (context or {}).get('view')

@@ -6,6 +6,7 @@ from stk_project.settings.env import env_bool, env_int, env_list, env_str
 VAR = 'STK_TEST_VAR'
 PURPOSE = 'тестовое назначение'
 
+
 @pytest.fixture(autouse=True)
 def _clean_var(monkeypatch):
     monkeypatch.delenv(VAR, raising=False)

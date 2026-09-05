@@ -34,7 +34,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     'rest_framework',
     'apps.core',
 ]
@@ -103,7 +102,7 @@ DATABASES = {
         'PORT': env_int('POSTGRES_PORT', 'порт базы данных', default=5432),
         'OPTIONS': {
             'connect_timeout': 2,
-        }
+        },
     }
 }
 

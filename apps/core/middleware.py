@@ -26,14 +26,13 @@ class RequestLoggingMiddleware:
             response = self.get_response(request)
         except Exception:
             logger.exception(
-                'Unhandled exception while processing the request',
-                extra=self._fields(request, 500, started)
+                'Unhandled exception while processing the request', extra=self._fields(request, 500, started)
             )
             raise
 
         response[REQUEST_ID_HEADER] = request_id
         logger.info(
-            "Request processed",
+            'Request processed',
             extra=self._fields(request, response.status_code, started),
         )
         return response

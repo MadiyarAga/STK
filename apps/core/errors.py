@@ -13,10 +13,14 @@ class AppError(Exception):
     message: str = 'Внутренняя ошибка сервера.'
     http_status: int = 500
 
-    def __init__(self, message: str | None = None,
-                 *, code: str | None = None,
-                 details: list[dict] | None = None,
-                 http_status: int | None = None) -> None:
+    def __init__(
+        self,
+        message: str | None = None,
+        *,
+        code: str | None = None,
+        details: list[dict] | None = None,
+        http_status: int | None = None,
+    ) -> None:
         cls = type(self)
         self.code = code or cls.code
         self.message = message or cls.message
@@ -75,7 +79,9 @@ class InternalError(AppError):
     message: str = 'Внутренняя ошибка сервера.'
     http_status: int = 500
 
+
 # --- Конфликты состояния (409) ---
+
 
 class ConflictError(AppError):
     code: str = 'CONFLICT'
@@ -97,7 +103,9 @@ class InvalidStatusTransition(ConflictError):
     code = 'INVALID_STATUS_TRANSITION'
     message = 'Недопустимое состояние.'
 
+
 # --- Ошибки данных (422) ---
+
 
 class RecipeCycleDetected(ValidationError):
     code = 'RECIPE_CYCLE_DETECTED'

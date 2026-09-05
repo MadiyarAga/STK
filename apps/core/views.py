@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 PROBE_TIMEOUT_SECONDS = 2
 PROBE_KEY_TTL_SECONDS = 60
 
+
 class HealthView(APIView):
     authentication_classes = []  # noqa: RUF012
     permission_classes = [AllowAny]  # noqa: RUF012
@@ -52,10 +53,7 @@ def _check_cache() -> bool:
 def _check_broker() -> bool:
     try:
         with celery_app.connection() as conn:
-            conn.ensure_connection(
-                max_retries=0,
-                timeout=PROBE_TIMEOUT_SECONDS
-            )
+            conn.ensure_connection(max_retries=0, timeout=PROBE_TIMEOUT_SECONDS)
     except Exception:
         logger.exception('Failed to connect to broker')
         return False
@@ -63,8 +61,8 @@ def _check_broker() -> bool:
 
 
 class ReadyView(APIView):
-    authentication_classes = [] # noqa: RUF012
-    permission_classes = [AllowAny] # noqa: RUF012
+    authentication_classes = []  # noqa: RUF012
+    permission_classes = [AllowAny]  # noqa: RUF012
 
     def get(self, request):
         checks = {
@@ -81,8 +79,9 @@ class ReadyView(APIView):
             overall, http_status = 'degraded', status.HTTP_200_OK
 
         return Response(
-            {'status': overall, 'checks': {name: 'ok' if ok else 'error' for name, ok in checks.items()}
-             }, status=http_status,)
+            {'status': overall, 'checks': {name: 'ok' if ok else 'error' for name, ok in checks.items()}},
+            status=http_status,
+        )
 
 
 def _json_error(error: errors.AppError) -> JsonResponse:
