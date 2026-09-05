@@ -21,3 +21,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include('apps.core.urls')),
 ]
+
+handler400 = 'apps.core.views.bad_request'
+handler403 = 'apps.core.views.permission_denied'
+handler404 = 'apps.core.views.not_found'
+handler500 = 'apps.core.views.server_error'

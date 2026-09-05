@@ -3,12 +3,16 @@ from uuid import uuid4
 
 from django.core.cache import cache
 from django.db import connection
+from django.http import JsonResponse
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from stk_project import celery_app
+
+from . import errors
+from .envelope import build_error_body
 
 logger = logging.getLogger(__name__)
 
@@ -78,4 +82,28 @@ class ReadyView(APIView):
 
         return Response(
             {'status': overall, 'checks': {name: 'ok' if ok else 'error' for name, ok in checks.items()}
-             }, status=http_status)
+             }, status=http_status,)
+
+
+def _json_error(error: errors.AppError) -> JsonResponse:
+    return JsonResponse(
+        build_error_body(error.code, error.message, error.details),
+        status=error.http_status,
+        json_dumps_params={'ensure_ascii': False},
+    )
+
+
+def bad_request(request):
+    return _json_error(errors.MalformedRequest())
+
+
+def permission_denied(request):
+    return _json_error(errors.PermissionDenied())
+
+
+def not_found(request):
+    return _json_error(errors.NotFound())
+
+
+def server_error(request):
+    return _json_error(errors.InternalError())

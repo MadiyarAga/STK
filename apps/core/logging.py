@@ -11,6 +11,7 @@ _EXTRA_FIELDS = (
     'path',
     'status_code',
     'duration_ms',
+    'view',
 )
 
 

@@ -39,6 +39,10 @@ INSTALLED_APPS = [
     'apps.core',
 ]
 
+REST_FRAMEWORK = {
+    'EXCEPTION_HANDLER': 'apps.core.exception_handler.api_exception_handler',
+}
+
 MIDDLEWARE = [
     'apps.core.middleware.RequestLoggingMiddleware',
     'django.middleware.security.SecurityMiddleware',
