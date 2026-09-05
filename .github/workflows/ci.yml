@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      db:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: stk_ci
+          POSTGRES_USER: stk
+          POSTGRES_PASSWORD: stk
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      redis:
+        image: redis:8-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DJANGO_SECRET_KEY: ci-not-a-secret-ephemeral-database-only
+      DJANGO_SETTINGS_MODULE: stk_project.settings.test
+      POSTGRES_DB: stk_ci
+      POSTGRES_USER: stk
+      POSTGRES_PASSWORD: stk
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: 5432
+      REDIS_URL: redis://localhost:6379/0
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements/*.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements/dev.txt
+
+      - name: Check formatting
+        run: ruff format --check .
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Apply migrations to a clean database
+        run: python manage.py migrate
+
+      - name: Run tests with coverage
+        run: coverage run -m pytest --create-db
+
+      - name: Enforce coverage threshold
+        run: coverage report --fail-under=80
+
+      - name: Build coverage report
+        if: always()
+        continue-on-error: true
+        run: coverage html
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-html
+          path: htmlcov/
+          if-no-files-found: ignore
+          retention-days: 14
