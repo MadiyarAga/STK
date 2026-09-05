@@ -60,6 +60,6 @@ class RequestLoggingMiddleware:
             user = getattr(request, 'user', None)
             if user is not None and user.is_authenticated:
                 return user.pk
-        except Exception:  # noqa: BLE001
+        except Exception:
             return None
         return None

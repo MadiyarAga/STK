@@ -1,6 +1,6 @@
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from .context import get_request_id
 
@@ -24,7 +24,7 @@ class RequestIdFilter(logging.Filter):
 class JsonFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         payload = {
-            'timestamp': datetime.fromtimestamp(record.created, timezone.utc).isoformat(),
+            'timestamp': datetime.fromtimestamp(record.created, UTC).isoformat(),
             'level': record.levelname,
             'logger': record.name,
             'message': record.getMessage(),
