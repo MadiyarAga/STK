@@ -24,19 +24,6 @@ load_dotenv(BASE_DIR / '.env')
 
 SECRET_KEY = env_str('DJANGO_SECRET_KEY', 'секретный ключ подписи сессий и токенов')
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env_str('POSTGRES_DB', 'имя базы данных'),
-        'USER': env_str('POSTGRES_USER', 'пользователь базы данных'),
-        'PASSWORD': env_str('POSTGRES_PASSWORD', 'пароль пользователя базы данных'),
-        'HOST': env_str('POSTGRES_HOST', 'хост базы данных'),
-        'PORT': env_int('POSTGRES_PORT', 'порт базы данных', default=5432),
-        'OPTIONS': {
-            'connect_timeout': 2,
-        }
-    }
-}
 
 # Application definition
 
@@ -53,6 +40,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'apps.core.middleware.RequestLoggingMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -101,6 +89,21 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': env_str('POSTGRES_DB', 'имя базы данных'),
+        'USER': env_str('POSTGRES_USER', 'пользователь базы данных'),
+        'PASSWORD': env_str('POSTGRES_PASSWORD', 'пароль пользователя базы данных'),
+        'HOST': env_str('POSTGRES_HOST', 'хост базы данных'),
+        'PORT': env_int('POSTGRES_PORT', 'порт базы данных', default=5432),
+        'OPTIONS': {
+            'connect_timeout': 2,
+        }
+    }
+}
+
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
@@ -117,6 +120,48 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+
+
+LOG_LEVEL = env_str('LOG_LEVEL', 'уровень логирования', default='INFO')
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'request_id': {
+            '()': 'apps.core.logging.RequestIdFilter',
+        },
+    },
+    'formatters': {
+        'json': {
+            '()': 'apps.core.logging.JsonFormatter',
+        },
+    },
+    'handlers': {
+        'stdout': {
+            'class': 'logging.StreamHandler',
+            'stream': 'ext://sys.stdout',
+            'formatter': 'json',
+            'filters': ['request_id'],
+        },
+    },
+    'root': {
+        'handlers': ['stdout'],
+        'level': LOG_LEVEL,
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['stdout'],
+            'level': LOG_LEVEL,
+            'propagate': False,
+        },
+        'django.server': {
+            'handlers': ['stdout'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+    },
+}
 
 
 REDIS_URL = env_str('REDIS_URL', 'адрес Redis для кэша и брокера задач')
@@ -143,6 +188,7 @@ CELERY_TASK_REJECT_ON_WORKER_LOST = True
 CELERY_TIMEZONE = 'UTC'
 # Попытка подключения к брокеру несколько раз, если брокер не доступен.
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_WORKER_HIJACK_ROOT_LOGGER = False
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
